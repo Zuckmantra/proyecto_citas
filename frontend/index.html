@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Citas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Gestión de Citas</h1>
+        </header>
+
+        <main>
+            <section class="calendar-section">
+                <h2>Seleccione una fecha</h2>
+                <input type="date" id="fecha" required>
+            </section>
+
+            <section class="appointments-section">
+                <div class="section-header">
+                    <h2>Citas del día</h2>
+                    <button id="nuevaCitaBtn" class="btn primary">Nueva Cita</button>
+                </div>
+                <div id="citasList"></div>
+            </section>
+        </main>
+
+        <!-- Modal para crear/editar citas -->
+        <div id="citaModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="modalTitulo">Nueva Cita</h2>
+                <form id="citaForm">
+                    <input type="hidden" id="citaId">
+                    <div class="form-group">
+                        <label for="paciente">Paciente</label>
+                        <input type="text" id="paciente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="profesional">Profesional</label>
+                        <input type="text" id="profesional" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fechaCita">Fecha</label>
+                        <input type="date" id="fechaCita" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="hora">Hora</label>
+                        <input type="time" id="hora" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancelarBtn" class="btn secondary">Cancelar</button>
+                        <button type="submit" class="btn primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
