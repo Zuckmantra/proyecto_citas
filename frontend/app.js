@@ -1,4 +1,3 @@
-// Elementos del DOM
 const fechaInput = document.getElementById('fecha');
 const citasList = document.getElementById('citasList');
 const nuevaCitaBtn = document.getElementById('nuevaCitaBtn');
@@ -20,14 +19,13 @@ const API_URL = 'http://localhost:3000';
 let citas = [];
 let modoEdicion = false;
 
-// Event Listeners
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Establecer fecha actual por defecto
+ 
     const hoy = new Date().toISOString().split('T')[0];
     fechaInput.value = hoy;
     fechaCitaInput.value = hoy;
-    
-    // Cargar citas del día actual
+
     cargarCitas(hoy);
 });
 
@@ -70,14 +68,14 @@ citaForm.addEventListener('submit', (e) => {
     }
 });
 
-// Cerrar modal haciendo clic fuera del contenido
+
 window.addEventListener('click', (e) => {
     if (e.target === citaModal) {
         citaModal.style.display = 'none';
     }
 });
 
-// Funciones de la API
+
 async function cargarCitas(fecha) {
     try {
         const response = await fetch(`${API_URL}/citas/${fecha}`);
@@ -174,7 +172,7 @@ function editarCita(id) {
     citaModal.style.display = 'flex';
 }
 
-// Mostrar citas en la tabla
+
 function mostrarCitas(citas) {
     if (citas.length === 0) {
         citasList.innerHTML = '<p>No hay citas programadas para esta fecha.</p>';

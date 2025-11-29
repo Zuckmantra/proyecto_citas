@@ -9,11 +9,11 @@ const app = express();
 const PORT = 3000;
 const CITAS_FILE = path.join(__dirname, 'citas.json');
 
-// Middleware
+
 app.use(cors());
 app.use(bodyParser.json());
 
-// Initialize citas.json if it doesn't exist
+
 async function initializeCitasFile() {
   try {
     await fs.access(CITAS_FILE);
@@ -22,7 +22,7 @@ async function initializeCitasFile() {
   }
 }
 
-// Read all citas
+
 app.get('/citas', async (req, res) => {
   try {
     const data = await fs.readFile(CITAS_FILE, 'utf8');
@@ -32,7 +32,7 @@ app.get('/citas', async (req, res) => {
   }
 });
 
-// Get citas by date
+
 app.get('/citas/:fecha', async (req, res) => {
   try {
     const { fecha } = req.params;
@@ -45,7 +45,6 @@ app.get('/citas/:fecha', async (req, res) => {
   }
 });
 
-// Create new cita
 app.post('/citas', async (req, res) => {
   try {
     const { paciente, profesional, fecha, hora } = req.body;
@@ -74,7 +73,7 @@ app.post('/citas', async (req, res) => {
   }
 });
 
-// Update cita
+
 app.put('/citas/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -103,7 +102,7 @@ app.put('/citas/:id', async (req, res) => {
   }
 });
 
-// Delete cita
+
 app.delete('/citas/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -127,7 +126,7 @@ app.delete('/citas/:id', async (req, res) => {
   }
 });
 
-// Start server
+
 app.listen(PORT, async () => {
   await initializeCitasFile();
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
