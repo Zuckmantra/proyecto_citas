@@ -1,218 +1,196 @@
-const fechaInput = document.getElementById('fecha');
-const citasList = document.getElementById('citasList');
-const nuevaCitaBtn = document.getElementById('nuevaCitaBtn');
-const citaModal = document.getElementById('citaModal');
-const closeBtn = document.querySelector('.close');
-const cancelarBtn = document.getElementById('cancelarBtn');
-const citaForm = document.getElementById('citaForm');
-const modalTitulo = document.getElementById('modalTitulo');
-const citaIdInput = document.getElementById('citaId');
-const pacienteInput = document.getElementById('paciente');
-const profesionalInput = document.getElementById('profesional');
-const fechaCitaInput = document.getElementById('fechaCita');
-const horaInput = document.getElementById('hora');
+// Elementos del DOM
+const authContainer = document.getElementById('auth-container');
+const mainContainer = document.getElementById('main-container');
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const loginError = document.getElementById('loginError');
+const registerError = document.getElementById('registerError');
+const logoutBtn = document.getElementById('logoutBtn');
+const userEmailSpan = document.getElementById('userEmail');
+const tabButtons = document.querySelectorAll('.tab-btn');
 
-// URL de la API
-const API_URL = 'http://localhost:3000';
+// URLs de la API
+const API_URL = 'http://localhost:3000/api';
+const LOGIN_URL = `${API_URL}/auth/login`;
+const REGISTER_URL = `${API_URL}/auth/register`;
+const PROFILE_URL = `${API_URL}/auth/me`;
 
-// Estado
-let citas = [];
-let modoEdicion = false;
+// Verificar si hay un token guardado
+const token = localStorage.getItem('token');
+if (token) {
+    checkAuth();
+} else {
+    showAuth();
+}
 
-
-document.addEventListener('DOMContentLoaded', () => {
- 
-    const hoy = new Date().toISOString().split('T')[0];
-    fechaInput.value = hoy;
-    fechaCitaInput.value = hoy;
-
-    cargarCitas(hoy);
+// Manejadores de eventos
+tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const tab = button.getAttribute('data-tab');
+        switchTab(tab);
+    });
 });
 
-fechaInput.addEventListener('change', (e) => {
-    cargarCitas(e.target.value);
-});
+loginForm.addEventListener('submit', handleLogin);
+registerForm.addEventListener('submit', handleRegister);
+logoutBtn.addEventListener('click', handleLogout);
 
-nuevaCitaBtn.addEventListener('click', () => {
-    modoEdicion = false;
-    citaForm.reset();
-    citaIdInput.value = '';
-    modalTitulo.textContent = 'Nueva Cita';
-    fechaCitaInput.value = fechaInput.value;
-    citaModal.style.display = 'flex';
-});
-
-closeBtn.addEventListener('click', () => {
-    citaModal.style.display = 'none';
-});
-
-cancelarBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    citaModal.style.display = 'none';
-});
-
-citaForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const citaData = {
-        paciente: pacienteInput.value.trim(),
-        profesional: profesionalInput.value.trim(),
-        fecha: fechaCitaInput.value,
-        hora: horaInput.value
-    };
-    
-    if (modoEdicion) {
-        actualizarCita(citaIdInput.value, citaData);
-    } else {
-        crearCita(citaData);
-    }
-});
-
-
-window.addEventListener('click', (e) => {
-    if (e.target === citaModal) {
-        citaModal.style.display = 'none';
-    }
-});
-
-
-async function cargarCitas(fecha) {
+// Funciones de autenticación
+async function checkAuth() {
     try {
-        const response = await fetch(`${API_URL}/citas/${fecha}`);
-        if (!response.ok) throw new Error('Error al cargar las citas');
-        
-        citas = await response.json();
-        mostrarCitas(citas);
+        const token = localStorage.getItem('token');
+        if (!token) {
+            showAuth();
+            return;
+        }
+        const response = await fetch(PROFILE_URL, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            showMain(data.user.email);
+        } else {
+            throw new Error('No autenticado');
+        }
     } catch (error) {
-        console.error('Error:', error);
-        alert('Error al cargar las citas');
+        localStorage.removeItem('token');
+        showAuth();
     }
 }
 
-async function crearCita(citaData) {
+async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
     try {
-        const response = await fetch(`${API_URL}/citas`, {
+        const response = await fetch(LOGIN_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(citaData)
+            body: JSON.stringify({ email, password })
         });
-        
-        if (!response.ok) throw new Error('Error al crear la cita');
-        
-        const nuevaCita = await response.json();
-        citas.push(nuevaCita);
-        mostrarCitas(citas);
-        citaModal.style.display = 'none';
-        alert('Cita creada correctamente');
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error al crear la cita');
-    }
-}
 
-async function actualizarCita(id, citaData) {
-    try {
-        const response = await fetch(`${API_URL}/citas/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(citaData)
-        });
-        
-        if (!response.ok) throw new Error('Error al actualizar la cita');
-        
-        const citaActualizada = await response.json();
-        const index = citas.findIndex(c => c.id === id);
-        if (index !== -1) {
-            citas[index] = citaActualizada;
+        const data = await response.json();
+
+        if (response.ok) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('userEmail', data.user.email);
+            showMain(data.user.email);
+        } else {
+            showError(loginError, data.error || 'Error al iniciar sesión');
         }
-        
-        mostrarCitas(citas);
-        citaModal.style.display = 'none';
-        alert('Cita actualizada correctamente');
     } catch (error) {
-        console.error('Error:', error);
-        alert('Error al actualizar la cita');
+        showError(loginError, 'Error de conexión');
     }
 }
 
-async function eliminarCita(id) {
-    if (!confirm('¿Está seguro de eliminar esta cita?')) return;
-    
+async function handleRegister(e) {
+    e.preventDefault();
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (password !== confirmPassword) {
+        return showError(registerError, 'Las contraseñas no coinciden');
+    }
+
     try {
-        const response = await fetch(`${API_URL}/citas/${id}`, {
-            method: 'DELETE'
+        const response = await fetch(REGISTER_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
         });
-        
-        if (!response.ok) throw new Error('Error al eliminar la cita');
-        
-        citas = citas.filter(cita => cita.id !== id);
-        mostrarCitas(citas);
-        alert('Cita eliminada correctamente');
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showSuccess('¡Registro exitoso! Por favor inicia sesión');
+            switchTab('login');
+            registerForm.reset();
+        } else {
+            showError(registerError, data.error || 'Error al registrarse');
+        }
     } catch (error) {
-        console.error('Error:', error);
-        alert('Error al eliminar la cita');
+        showError(registerError, 'Error de conexión');
     }
 }
 
-function editarCita(id) {
-    const cita = citas.find(c => c.id === id);
-    if (!cita) return;
-    
-    modoEdicion = true;
-    citaIdInput.value = cita.id;
-    pacienteInput.value = cita.paciente;
-    profesionalInput.value = cita.profesional;
-    fechaCitaInput.value = cita.fecha;
-    horaInput.value = cita.hora;
-    modalTitulo.textContent = 'Editar Cita';
-    citaModal.style.display = 'flex';
+function handleLogout() {
+    localStorage.removeItem('token');
+    showAuth();
 }
 
+// Funciones de interfaz
+function switchTab(tab) {
+    // Actualizar botones de pestaña
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
+    });
 
-function mostrarCitas(citas) {
-    if (citas.length === 0) {
-        citasList.innerHTML = '<p>No hay citas programadas para esta fecha.</p>';
-        return;
-    }
-    
-    const table = document.createElement('table');
-    table.innerHTML = `
-        <thead>
-            <tr>
-                <th>Hora</th>
-                <th>Paciente</th>
-                <th>Profesional</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            ${citas.map(cita => `
-                <tr>
-                    <td>${formatearHora(cita.hora)}</td>
-                    <td>${cita.paciente}</td>
-                    <td>${cita.profesional}</td>
-                    <td class="actions">
-                        <button class="btn primary" onclick="editarCita('${cita.id}')">Editar</button>
-                        <button class="btn danger" onclick="eliminarCita('${cita.id}')">Eliminar</button>
-                    </td>
-                </tr>
-            `).join('')}
-        </tbody>
-    `;
-    
-    citasList.innerHTML = '';
-    citasList.appendChild(table);
+    // Mostrar el formulario correspondiente
+    document.querySelectorAll('.auth-form').forEach(form => {
+        form.classList.toggle('active', form.id === `${tab}Form`);
+    });
+
+    // Limpiar errores
+    loginError.textContent = '';
+    registerError.textContent = '';
 }
 
-// Funciones de utilidad
-function formatearHora(hora) {
-    if (!hora) return '';
-    
-    // Asegurarse de que la hora tenga el formato HH:MM
-    const [horas, minutos] = hora.split(':');
-    return `${horas.padStart(2, '0')}:${minutos || '00'}`;
+function showAuth() {
+    authContainer.classList.remove('hidden');
+    mainContainer.classList.add('hidden');
+    document.title = 'Gestión de Citas - Iniciar Sesión';
 }
+
+function showMain(email) {
+    authContainer.classList.add('hidden');
+    mainContainer.classList.remove('hidden');
+    userEmailSpan.textContent = email;
+    document.title = 'Gestión de Citas';
+    // Aquí puedes cargar las citas del usuario
+}
+
+function showError(element, message) {
+    element.textContent = message;
+    element.classList.add('show');
+    setTimeout(() => element.classList.remove('show'), 5000);
+}
+
+function showSuccess(message) {
+    const successMsg = document.createElement('div');
+    successMsg.className = 'success-message show';
+    successMsg.textContent = message;
+    document.body.appendChild(successMsg);
+    setTimeout(() => successMsg.remove(), 3000);
+}
+
+// Toggle para mostrar/ocultar contraseña
+document.querySelectorAll('.toggle-password').forEach(icon => {
+    icon.addEventListener('click', function() {
+        const input = this.previousElementSibling;
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+});
+
+// Inicializar la aplicación
+function initApp() {
+    // Aquí puedes inicializar otros componentes de la aplicación
+    console.log('Aplicación iniciada');
+}
+
+// Iniciar la aplicación cuando el DOM esté cargado
+document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+    checkAuth();
+});
