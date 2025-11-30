@@ -3,13 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Citas</title>
+    <title>Gestión de Citas - Iniciar Sesión</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
+    <!-- Contenedor de autenticación -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-tabs">
+            <button class="tab-btn active" data-tab="login">Iniciar Sesión</button>
+            <button class="tab-btn" data-tab="register">Registrarse</button>
+        </div>
+
+        <!-- Formulario de Inicio de Sesión -->
+        <form id="loginForm" class="auth-form active">
+            <h2>Iniciar Sesión</h2>
+            <div id="loginError" class="error-message"></div>
+            <div class="form-group">
+                <label for="loginEmail">Correo Electrónico</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="loginEmail" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Contraseña</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="loginPassword" required>
+                    <i class="fas fa-eye toggle-password"></i>
+                </div>
+            </div>
+            <button type="submit" class="btn primary">Iniciar Sesión</button>
+        </form>
+
+        <!-- Formulario de Registro -->
+        <form id="registerForm" class="auth-form">
+            <h2>Crear Cuenta</h2>
+            <div id="registerError" class="error-message"></div>
+            <div class="form-group">
+                <label for="registerEmail">Correo Electrónico</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="registerEmail" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">Contraseña</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="registerPassword" required>
+                    <i class="fas fa-eye toggle-password"></i>
+                </div>
+                <small>La contraseña debe tener al menos 6 caracteres y contener al menos un número.</small>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirmar Contraseña</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="confirmPassword" required>
+                    <i class="fas fa-eye toggle-password"></i>
+                </div>
+            </div>
+            <button type="submit" class="btn primary">Registrarse</button>
+        </form>
+    </div>
+
+    <!-- Contenido principal (oculto hasta el inicio de sesión) -->
+    <div id="main-container" class="container hidden">
         <header>
             <h1>Gestión de Citas</h1>
+            <div class="user-info">
+                <span id="userEmail"></span>
+                <button id="logoutBtn" class="btn secondary">Cerrar Sesión</button>
+            </div>
         </header>
 
         <main>
@@ -26,7 +93,6 @@
                 <div id="citasList"></div>
             </section>
         </main>
-
    
         <div id="citaModal" class="modal">
             <div class="modal-content">

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
@@ -5,11 +6,16 @@ const { v4: uuidv4 } = require('uuid');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 
+// Importar controladores de autenticación
+const { register, login, getProfile } = require('./controllers/auth.controller');
+const { authenticateToken } = require('./middlewares/auth.middleware');
+const { registerValidation, loginValidation, validate } = require('./middlewares/validation.middleware');
+
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3002;
 const CITAS_FILE = path.join(__dirname, 'citas.json');
 
-
+// Configuración de middlewares
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -127,7 +133,19 @@ app.delete('/citas/:id', async (req, res) => {
 });
 
 
+// Rutas de autenticación
+app.post('/api/auth/register', registerValidation, validate, register);
+app.post('/api/auth/login', loginValidation, validate, login);
+app.get('/api/auth/me', authenticateToken, getProfile);
+
+// Ruta protegida de ejemplo
+app.get('/api/protected', authenticateToken, (req, res) => {
+  res.json({ message: 'Esta es una ruta protegida', user: req.user });
+});
+
+// Iniciar el servidor
 app.listen(PORT, async () => {
   await initializeCitasFile();
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`Documentación de la API disponible en http://localhost:${PORT}/api-docs`);
 });
